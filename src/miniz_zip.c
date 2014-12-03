@@ -85,7 +85,7 @@ mrb_miniz_zip(mrb_state *mrb, mrb_value klass)
       file_loc = ftell(pInfile);
       fseek(pInfile, 0, SEEK_SET);
 
-      if (fread(s_inbuf, 1, file_loc, pInfile) != file_loc);
+      if (fread(s_inbuf, 1, file_loc, pInfile) != file_loc)
       {
         printf("Failed reading from input file!\n");
         return mrb_false_value();
