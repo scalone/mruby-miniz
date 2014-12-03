@@ -1,8 +1,8 @@
 mruby-miniz
 ============
 
-"mruby-miniz" mrbgem provides interaface to zip and unzip files.
-Implemented using miniz, Single C source file Deflate/Inflate compression library with zlib-compatible API, ZIP archive reading/writing, PNG writing.
+"mruby-miniz" mrbgem provides interface to zip and unzip files.
+Implemented using [miniz](https://code.google.com/p/miniz/), Single C source file Deflate/Inflate compression library with zlib-compatible API, ZIP archive reading/writing, PNG writing.
 
 ## Example
 ```sh
@@ -22,9 +22,10 @@ Miniz.unzip("test.zip")
 
 ## TODO
 - Support zip directories.
-- Remove IO require, as confi
-- add missing methods
-- write tests
+- Remove IO require, configurable.
+- Remove malloc require, configurable.
+- add missing methods.
+- write tests.
 - Add exception instead of return false if some problem happens.
 
 
