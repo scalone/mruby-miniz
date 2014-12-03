@@ -1,8 +1,3 @@
-// example2.c - Simple demonstration of miniz.c's ZIP archive API's.
-// Note this test deletes the test archive file "__mz_example2_test__.zip" in the current directory, then creates a new one with test data.
-// Public domain, May 15 2011, Rich Geldreich, richgel99@gmail.com. See "unlicense" statement at the end of tinfl.c.
-
-
 #include "mruby.h"
 #include <stddef.h>
 #include <string.h>
