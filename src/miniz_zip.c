@@ -200,7 +200,7 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
         return mrb_false_value();
       }
 
-      if (fwrite(p, 1, uncomp_size - 1, pOutfile) != uncomp_size - 1)
+      if (fwrite(p, 1, uncomp_size, pOutfile) != uncomp_size)
       {
         printf("Failed writing to output file!\n");
         return mrb_false_value();
