@@ -30,6 +30,7 @@
   #endif
 #endif
 
+#define MINIZ_HEADER_FILE_ONLY
 #include "miniz.c"
 
 typedef unsigned char uint8;
