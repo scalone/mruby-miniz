@@ -24,4 +24,5 @@ MRuby::Build.new do |conf|
   conf.gem :git => 'https://github.com/iij/mruby-tempfile.git'
 
   conf.gem File.expand_path(File.dirname(__FILE__))
+  conf.enable_test
 end
