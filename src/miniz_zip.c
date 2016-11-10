@@ -232,6 +232,44 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
   return mrb_true_value();
 }
 
+static mrb_value
+mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
+{
+  mrb_int iRet=0;
+  mrb_value string;
+  unsigned char *pDest;
+  unsigned long ulDest=0;
+
+  mrb_get_args(mrb, "S", &string);
+
+  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+      (unsigned long)RSTRING_LEN(string));
+
+  if (iRet == 0)
+    return mrb_str_new(mrb, pDest, ulDest);
+  else
+    return mrb_nil_value();
+}
+
+static mrb_value
+mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
+{
+  mrb_int iRet=0;
+  mrb_value string;
+  unsigned char *pDest;
+  unsigned long ulDest=0;
+
+  mrb_get_args(mrb, "S", &string);
+
+  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+      (unsigned long)RSTRING_LEN(string));
+
+  if (iRet == 0)
+    return mrb_str_new(mrb, pDest, ulDest);
+  else
+    return mrb_nil_value();
+}
+
 void
 mrb_init_miniz(mrb_state* mrb)
 {
@@ -241,5 +279,7 @@ mrb_init_miniz(mrb_state* mrb)
 
   mrb_define_class_method(mrb, miniz, "zip", mrb_miniz_zip, MRB_ARGS_ANY());
   mrb_define_class_method(mrb, miniz, "_unzip", mrb_miniz_unzip, MRB_ARGS_REQ(2));
+  mrb_define_class_method(mrb, miniz, "inflate", mrb_miniz_inflate, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb, miniz, "deflate", mrb_miniz_deflate, MRB_ARGS_REQ(1));
 }
 
