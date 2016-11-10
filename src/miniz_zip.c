@@ -235,38 +235,50 @@ static mrb_value
 mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 {
   mrb_int iRet=0;
-  mrb_value string;
+  mrb_value string, value;
   unsigned char *pDest;
   unsigned long ulDest=0;
 
   mrb_get_args(mrb, "S", &string);
 
-  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
-      (unsigned long)RSTRING_LEN(string));
+  ulDest = RSTRING_LEN(string) * 50;
+  pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
+  memset(pDest, 0, ulDest);
+
+  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string), ulDest);
 
   if (iRet == 0)
-    return mrb_str_new(mrb, pDest, ulDest);
+    value = mrb_str_new(mrb, (const char *)pDest, ulDest);
   else
-    return mrb_nil_value();
+    value = mrb_fixnum_value(iRet);
+
+  mrb_free(mrb, pDest);
+  return value;
 }
 
 static mrb_value
 mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
 {
   mrb_int iRet=0;
-  mrb_value string;
+  mrb_value string, value;
   unsigned char *pDest;
   unsigned long ulDest=0;
 
   mrb_get_args(mrb, "S", &string);
 
-  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
-      (unsigned long)RSTRING_LEN(string));
+  ulDest = RSTRING_LEN(string);
+  pDest = (unsigned char *) mrb_malloc(mrb, ulDest);
+  memset(pDest, 0, ulDest);
+
+  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string), ulDest);
 
   if (iRet == 0)
-    return mrb_str_new(mrb, pDest, ulDest);
+    value = mrb_str_new(mrb, (const char *)pDest, ulDest);
   else
-    return mrb_nil_value();
+    value = mrb_fixnum_value(iRet);
+
+  mrb_free(mrb, pDest);
+  return value;
 }
 
 void
