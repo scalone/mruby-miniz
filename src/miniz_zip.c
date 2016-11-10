@@ -116,7 +116,6 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
   int n=0;
   /*static const char *s_Test_archive_filename = "test.zip";*/
   FILE *pOutfile;
-  long file_loc;
 
   /*printf("miniz.c version: %s\n", MZ_VERSION);*/
 
@@ -185,13 +184,13 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
 
     p = mz_zip_reader_extract_file_to_heap(&zip_archive, file_stat.m_filename, &uncomp_size, 0);
     if (!p) {
-      printf("mz_zip_reader_extract_file_to_heap(%d) failed!\n", p);
+      printf("mz_zip_reader_extract_file_to_heap(%d) failed!\n", (int)p);
       mz_zip_reader_end(&zip_archive);
       return mrb_false_value();
     }
 
     // Make sure the extraction really succeeded.
-    if (uncomp_size >= 0)
+    if (uncomp_size > 0)
     {
       sprintf(path, "%s/%s", RSTRING_PTR(dir), file_stat.m_filename);
       pOutfile = fopen(path, "wb");
