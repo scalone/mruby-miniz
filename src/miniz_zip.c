@@ -245,7 +245,8 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
   pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
-  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string), ulDest);
+  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+      RSTRING_LEN(string));
 
   if (iRet == 0)
     value = mrb_str_new(mrb, (const char *)pDest, ulDest);
@@ -266,14 +267,15 @@ mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
 
   mrb_get_args(mrb, "S", &string);
 
-  ulDest = RSTRING_LEN(string);
+  ulDest = RSTRING_LEN(string) > 200 ? RSTRING_LEN(string) : 200;
   pDest = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
-  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string), ulDest);
+  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+      RSTRING_LEN(string));
 
   if (iRet == 0)
-    value = mrb_str_new(mrb, (const char *)pDest, ulDest);
+    value = mrb_str_new(mrb, (const unsigned char *)pDest, ulDest);
   else
     value = mrb_fixnum_value(iRet);
 
