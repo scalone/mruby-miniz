@@ -241,7 +241,7 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 
   mrb_get_args(mrb, "S", &string);
 
-  ulDest = RSTRING_LEN(string) * 50;
+  ulDest = RSTRING_LEN(string) * 100;
   pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
