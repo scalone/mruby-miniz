@@ -231,6 +231,37 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
   return mrb_true_value();
 }
 
+static int
+mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len)
+{
+  mz_stream stream;
+  int status;
+  memset(&stream, 0, sizeof(stream));
+
+  // In case mz_ulong is 64-bits (argh I hate longs).
+  if ((source_len | *pDest_len) > 0xFFFFFFFFU) return MZ_PARAM_ERROR;
+
+  stream.next_in = pSource;
+  stream.avail_in = (mz_uint32)source_len;
+  stream.next_out = pDest;
+  stream.avail_out = (mz_uint32)*pDest_len;
+
+  /*status = mz_inflateInit(&stream);*/
+  status = mz_inflateInit2(&stream, -MZ_DEFAULT_WINDOW_BITS);
+  if (status != MZ_OK)
+    return status;
+
+  status = mz_inflate(&stream, MZ_FINISH);
+  if (status != MZ_STREAM_END)
+  {
+    mz_inflateEnd(&stream);
+    return ((status == MZ_BUF_ERROR) && (!stream.avail_in)) ? MZ_DATA_ERROR : status;
+  }
+  *pDest_len = stream.total_out;
+
+  return mz_inflateEnd(&stream);
+}
+
 static mrb_value
 mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 {
@@ -245,7 +276,8 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
   pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
-  iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+  /*iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),*/
+  iRet = mz_inflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
       RSTRING_LEN(string));
 
   if (iRet == 0)
@@ -255,6 +287,41 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 
   mrb_free(mrb, pDest);
   return value;
+}
+
+static int
+mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len)
+{
+  int status;
+  mz_stream stream;
+  memset(&stream, 0, sizeof(stream));
+
+  // In case mz_ulong is 64-bits (argh I hate longs).
+  if ((source_len | *pDest_len) > 0xFFFFFFFFU) return MZ_PARAM_ERROR;
+
+  stream.next_in = pSource;
+  stream.avail_in = (mz_uint32)source_len;
+  stream.next_out = pDest;
+  stream.avail_out = (mz_uint32)*pDest_len;
+
+  status = mz_deflateInit2(&stream, MZ_BEST_COMPRESSION, MZ_DEFLATED, -MZ_DEFAULT_WINDOW_BITS, 8, MZ_FIXED);
+
+  if (status != MZ_OK) return status;
+
+  status = mz_deflate(&stream, MZ_SYNC_FLUSH);
+  if (status != MZ_OK) {
+    mz_deflateEnd(&stream);
+    return (status == MZ_OK) ? MZ_BUF_ERROR : status;
+  }
+
+  status = mz_deflate(&stream, MZ_FINISH);
+  if (status != MZ_STREAM_END) {
+    mz_deflateEnd(&stream);
+    return (status == MZ_OK) ? MZ_BUF_ERROR : status;
+  }
+
+  *pDest_len = stream.total_out;
+  return mz_deflateEnd(&stream);
 }
 
 static mrb_value
@@ -271,11 +338,11 @@ mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
   pDest = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
-  iRet = mz_compress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
+  iRet = mz_deflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
       RSTRING_LEN(string));
 
   if (iRet == 0)
-    value = mrb_str_new(mrb, (const unsigned char *)pDest, ulDest);
+    value = mrb_str_new(mrb, (const char *)pDest, ulDest);
   else
     value = mrb_fixnum_value(iRet);
 
