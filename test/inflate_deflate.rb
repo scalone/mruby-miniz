@@ -1,3 +1,15 @@
+assert('deflate POST / 123456789') do
+  assert_equal "x\001\001\020\000\357\377POST / 123456789 Y\003\223", Miniz.deflate("POST / 123456789")
+end
+
+assert('inflate CLOUDWALK ') do
+  block = "x\234r\366\361\017u\tw\364\361V\000\004\000\000\377\377\020\b\002\307"
+  assert_equal "CLOUDWALK ", Miniz.inflate(block)
+end
+
+assert('deflate 1234') do
+  assert_equal "x\001\001\004\000\373\3771234\001\370\000\313", Miniz.deflate("1234")
+end
 
 assert('deflate') do
   string = "Hello Hello Hello Hello Hello Hello!"
