@@ -1,7 +1,7 @@
 MRuby::Gem::Specification.new('mruby-miniz') do |spec|
   spec.license = 'MIT'
   spec.authors = 'scalone'
-  spec.version = '1.0.0'
+  spec.version = '1.1.0'
   spec.summary = 'Ruby interface for Miniz v1.15, a zlib-subset to deflate/inflate and zip/unzip without dir support'
 
 
