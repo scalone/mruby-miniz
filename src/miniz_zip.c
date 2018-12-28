@@ -246,8 +246,7 @@ mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
   stream.next_out = pDest;
   stream.avail_out = (mz_uint32)*pDest_len;
 
-  /*status = mz_inflateInit(&stream);*/
-  status = mz_inflateInit2(&stream, -MZ_DEFAULT_WINDOW_BITS);
+  status = mz_inflateInit2(&stream, MZ_DEFAULT_WINDOW_BITS);
   if (status != MZ_OK)
     return status;
 
@@ -276,7 +275,6 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
   pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
-  /*iRet = mz_uncompress(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),*/
   iRet = mz_inflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
       RSTRING_LEN(string));
 
@@ -304,11 +302,11 @@ mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
   stream.next_out = pDest;
   stream.avail_out = (mz_uint32)*pDest_len;
 
-  status = mz_deflateInit2(&stream, MZ_BEST_COMPRESSION, MZ_DEFLATED, -MZ_DEFAULT_WINDOW_BITS, 8, MZ_FIXED);
+  status = mz_deflateInit2(&stream, MZ_DEFAULT_COMPRESSION, MZ_DEFLATED, MZ_DEFAULT_WINDOW_BITS, 8, MZ_DEFAULT_STRATEGY);
 
   if (status != MZ_OK) return status;
 
-  status = mz_deflate(&stream, MZ_SYNC_FLUSH);
+  status = mz_deflate(&stream, MZ_NO_FLUSH);
   if (status != MZ_OK) {
     mz_deflateEnd(&stream);
     return (status == MZ_OK) ? MZ_BUF_ERROR : status;
