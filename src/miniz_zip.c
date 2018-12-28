@@ -288,7 +288,7 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 }
 
 static int
-mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len)
+mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len, int level, int flush, int window_bits, int mem_level, int strategy)
 {
   int status;
   mz_stream stream;
@@ -306,7 +306,7 @@ mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
 
   if (status != MZ_OK) return status;
 
-  status = mz_deflate(&stream, MZ_NO_FLUSH);
+  status = mz_deflate(&stream, flush);
   if (status != MZ_OK) {
     mz_deflateEnd(&stream);
     return (status == MZ_OK) ? MZ_BUF_ERROR : status;
@@ -325,19 +325,19 @@ mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
 static mrb_value
 mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
 {
-  mrb_int iRet=0;
+  mrb_int iRet=0, level=0, flush=0, window_bits=0, mem_level=0, strategy=0;
   mrb_value string, value;
   unsigned char *pDest;
   unsigned long ulDest=0;
 
-  mrb_get_args(mrb, "S", &string);
+  mrb_get_args(mrb, "Siiiii", &string, &level, &flush, &window_bits, &mem_level, &strategy);
 
   ulDest = RSTRING_LEN(string) > 200 ? RSTRING_LEN(string) : 200;
   pDest = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
   iRet = mz_deflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
-      RSTRING_LEN(string));
+      RSTRING_LEN(string), level, flush, window_bits, mem_level, strategy);
 
   if (iRet == 0)
     value = mrb_str_new(mrb, (const char *)pDest, ulDest);
@@ -355,9 +355,9 @@ mrb_init_miniz(mrb_state* mrb)
 
   miniz = mrb_define_class(mrb, "Miniz", mrb->object_class);
 
-  mrb_define_class_method(mrb, miniz, "zip", mrb_miniz_zip, MRB_ARGS_ANY());
-  mrb_define_class_method(mrb, miniz, "_unzip", mrb_miniz_unzip, MRB_ARGS_REQ(2));
-  mrb_define_class_method(mrb, miniz, "inflate", mrb_miniz_inflate, MRB_ARGS_REQ(1));
-  mrb_define_class_method(mrb, miniz, "deflate", mrb_miniz_deflate, MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb , miniz , "zip"      , mrb_miniz_zip     , MRB_ARGS_ANY());
+  mrb_define_class_method(mrb , miniz , "_unzip"   , mrb_miniz_unzip   , MRB_ARGS_REQ(2));
+  mrb_define_class_method(mrb , miniz , "inflate"  , mrb_miniz_inflate , MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb , miniz , "_deflate" , mrb_miniz_deflate , MRB_ARGS_REQ(6));
 }
 

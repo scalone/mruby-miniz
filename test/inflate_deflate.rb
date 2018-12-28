@@ -41,3 +41,10 @@ assert('deflate small') do
   block = "x\0013426153\004\223\000\017\232\002k"
   assert_equal block, Miniz.deflate(string)
 end
+
+assert('support parameters') do
+  str   = "1234" * 10
+  block = "x\00124261$\002\003\000\000\000\377\377\003\000\241\270\a\345"
+  assert_equal block, Miniz.deflate(str, Miniz::MZ_UBER_COMPRESSION, Miniz::MZ_SYNC_FLUSH, Miniz::MZ_DEFAULT_WINDOW_BITS, 9, Miniz::MZ_FILTERED)
+end
+
