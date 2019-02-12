@@ -44,8 +44,12 @@ class Miniz
     self._unzip(filezip, dir)
   end
 
-  def self.deflate(string, level = MZ_DEFAULT_COMPRESSION, flush = MZ_NO_FLUSH, window_bits = MZ_DEFAULT_WINDOW_BITS, mem_level = MZ_DEFAULT_MEM_LEVEL, strategy = MZ_DEFAULT_STRATEGY)
+  def self.deflate(string, level = MZ_BEST_COMPRESSION, flush = MZ_SYNC_FLUSH, window_bits = -MZ_DEFAULT_WINDOW_BITS, mem_level = MZ_DEFAULT_MEM_LEVEL, strategy = MZ_FIXED)
     _deflate(string, level, flush, window_bits, mem_level, strategy)
+  end
+
+  def self.inflate(block, window_bits = -MZ_DEFAULT_WINDOW_BITS)
+    _inflate(block, window_bits)
   end
 end
 

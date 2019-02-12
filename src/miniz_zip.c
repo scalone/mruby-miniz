@@ -232,7 +232,7 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
 }
 
 static int
-mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len)
+mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *pSource, mz_ulong source_len, int window_bits)
 {
   mz_stream stream;
   int status;
@@ -246,7 +246,7 @@ mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
   stream.next_out = pDest;
   stream.avail_out = (mz_uint32)*pDest_len;
 
-  status = mz_inflateInit2(&stream, MZ_DEFAULT_WINDOW_BITS);
+  status = mz_inflateInit2(&stream, window_bits);
   if (status != MZ_OK)
     return status;
 
@@ -264,19 +264,19 @@ mz_inflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
 static mrb_value
 mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
 {
-  mrb_int iRet=0;
+  mrb_int iRet=0, window_bits=0;
   mrb_value string, value;
   unsigned char *pDest;
   unsigned long ulDest=0;
 
-  mrb_get_args(mrb, "S", &string);
+  mrb_get_args(mrb, "Si", &string, &window_bits);
 
   ulDest = RSTRING_LEN(string) * 100;
   pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
   memset(pDest, 0, ulDest);
 
   iRet = mz_inflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
-      RSTRING_LEN(string));
+      RSTRING_LEN(string), window_bits);
 
   if (iRet == 0)
     value = mrb_str_new(mrb, (const char *)pDest, ulDest);
@@ -357,7 +357,7 @@ mrb_init_miniz(mrb_state* mrb)
 
   mrb_define_class_method(mrb , miniz , "zip"      , mrb_miniz_zip     , MRB_ARGS_ANY());
   mrb_define_class_method(mrb , miniz , "_unzip"   , mrb_miniz_unzip   , MRB_ARGS_REQ(2));
-  mrb_define_class_method(mrb , miniz , "inflate"  , mrb_miniz_inflate , MRB_ARGS_REQ(1));
+  mrb_define_class_method(mrb , miniz , "_inflate" , mrb_miniz_inflate , MRB_ARGS_REQ(1));
   mrb_define_class_method(mrb , miniz , "_deflate" , mrb_miniz_deflate , MRB_ARGS_REQ(6));
 }
 
