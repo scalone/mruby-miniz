@@ -7,6 +7,12 @@ assert('inflate CLOUDWALK ') do
   assert_equal "CLOUDWALK ", Miniz.inflate(block)
 end
 
+assert('deflate websocket string') do
+  string = '{"token":"TOKENTOKENTOKENTOKENTOKENTOKENTOKENTOKEN","id":"1111111","heartbeat":"10"}'
+  block  = Miniz.deflate(string, Miniz::MZ_BEST_COMPRESSION, Miniz::MZ_SYNC_FLUSH, -(Miniz::MZ_DEFAULT_WINDOW_BITS), Miniz::MZ_DEFAULT_MEM_LEVEL, Miniz::MZ_FIXED).unpack("H*")
+  assert_equal ["aa562ac9cf4ecd53b2520af1f776f5238250d251ca4c01aa37840020372335b1a8242935b104246aa0540b000000ffff0300"], block
+end
+
 assert('deflate 1234') do
   assert_equal "x\001\001\004\000\373\3771234\001\370\000\313", Miniz.deflate("1234")
 end

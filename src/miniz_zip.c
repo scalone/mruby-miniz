@@ -302,7 +302,7 @@ mz_deflate_raw(unsigned char *pDest, mz_ulong *pDest_len, const unsigned char *p
   stream.next_out = pDest;
   stream.avail_out = (mz_uint32)*pDest_len;
 
-  status = mz_deflateInit2(&stream, MZ_DEFAULT_COMPRESSION, MZ_DEFLATED, MZ_DEFAULT_WINDOW_BITS, 8, MZ_DEFAULT_STRATEGY);
+  status = mz_deflateInit2(&stream, level, MZ_DEFLATED, window_bits, mem_level, strategy);
 
   if (status != MZ_OK) return status;
 
