@@ -186,7 +186,7 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
       pOutfile = fopen(path, "wb");
       if (!pOutfile)
       {
-        MZ_FCLOSE(pOutfile);
+        fclose(pOutfile);
         mz_free(p);
         mz_zip_reader_end(&zip_archive);
         printf("Failed opening output file!\n");
@@ -195,12 +195,12 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
 
       if (fwrite(p, 1, uncomp_size, pOutfile) != uncomp_size)
       {
-        MZ_FCLOSE(pOutfile);
+        fclose(pOutfile);
         printf("Failed writing to output file!\n");
         return mrb_false_value();
       }
 
-      if (EOF == MZ_FCLOSE(pOutfile))
+      if (EOF == fclose(pOutfile))
       {
         printf("Failed writing to output file!\n");
         return mrb_false_value();
