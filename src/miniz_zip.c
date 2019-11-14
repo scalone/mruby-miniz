@@ -162,6 +162,7 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
       return mrb_false_value();
     }
 
+    if (mz_zip_reader_is_file_a_directory(&zip_archive, i)) continue;
 
     /*printf("Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u, Is Dir: %u\n", file_stat.m_filename, file_stat.m_comment, (uint)file_stat.m_uncomp_size, (uint)file_stat.m_comp_size, mz_zip_reader_is_file_a_directory(&zip_archive, i));*/
 
