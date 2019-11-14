@@ -112,7 +112,6 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
   mz_bool status;
   size_t uncomp_size;
   mz_zip_archive zip_archive;
-  void *p;
   int n=0;
   /*static const char *s_Test_archive_filename = "test.zip";*/
   FILE *pOutfile;
@@ -150,13 +149,10 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
 
   n = (int)mz_zip_reader_get_num_files(&zip_archive);
 
-  mz_zip_reader_end(&zip_archive);
-
   // Get and print information about each file in the archive.
   for (i = 0; i < n; i++)
   {
-    memset(&zip_archive, 0, sizeof(zip_archive));
-    status = mz_zip_reader_init_file(&zip_archive, RSTRING_PTR(filezip), 0);
+    void *p = NULL;
 
     mz_zip_archive_file_stat file_stat;
     if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat))
@@ -166,15 +162,8 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
       return mrb_false_value();
     }
 
+
     /*printf("Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u, Is Dir: %u\n", file_stat.m_filename, file_stat.m_comment, (uint)file_stat.m_uncomp_size, (uint)file_stat.m_comp_size, mz_zip_reader_is_file_a_directory(&zip_archive, i));*/
-
-    mz_zip_reader_end(&zip_archive);
-
-    memset(&zip_archive, 0, sizeof(zip_archive));
-    status = mz_zip_reader_init_file(&zip_archive, RSTRING_PTR(filezip), 0);
-
-    /*TODO Scalone: Check if directory*/
-    /*status = mz_zip_reader_init_file(&zip_archive, RSTRING_PTR(filezip), sort_iter ? MZ_ZIP_FLAG_DO_NOT_SORT_CENTRAL_DIRECTORY : 0);*/
 
     if (!status)
     {
@@ -196,17 +185,21 @@ mrb_miniz_unzip(mrb_state *mrb, mrb_value klass)
       pOutfile = fopen(path, "wb");
       if (!pOutfile)
       {
+        MZ_FCLOSE(pOutfile);
+        mz_free(p);
+        mz_zip_reader_end(&zip_archive);
         printf("Failed opening output file!\n");
         return mrb_false_value();
       }
 
       if (fwrite(p, 1, uncomp_size, pOutfile) != uncomp_size)
       {
+        MZ_FCLOSE(pOutfile);
         printf("Failed writing to output file!\n");
         return mrb_false_value();
       }
 
-      if (EOF == fclose(pOutfile))
+      if (EOF == MZ_FCLOSE(pOutfile))
       {
         printf("Failed writing to output file!\n");
         return mrb_false_value();
@@ -272,7 +265,7 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
   mrb_get_args(mrb, "Si", &string, &window_bits);
 
   ulDest = RSTRING_LEN(string) * 100;
-  pDest  = (unsigned char *) mrb_malloc(mrb, ulDest);
+  pDest  = (unsigned char *) malloc(ulDest);
   memset(pDest, 0, ulDest);
 
   iRet = mz_inflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
@@ -283,7 +276,7 @@ mrb_miniz_inflate(mrb_state *mrb, mrb_value klass)
   else
     value = mrb_fixnum_value(iRet);
 
-  mrb_free(mrb, pDest);
+  free(pDest);
   return value;
 }
 
@@ -332,8 +325,8 @@ mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
 
   mrb_get_args(mrb, "Siiiii", &string, &level, &flush, &window_bits, &mem_level, &strategy);
 
-  ulDest = RSTRING_LEN(string) > 200 ? RSTRING_LEN(string) : 200;
-  pDest = (unsigned char *) mrb_malloc(mrb, ulDest);
+  ulDest = RSTRING_LEN(string) > 1000 ? RSTRING_LEN(string) : 2000;
+  pDest = (unsigned char *) malloc(ulDest);
   memset(pDest, 0, ulDest);
 
   iRet = mz_deflate_raw(pDest, &ulDest, (const unsigned char *)RSTRING_PTR(string),
@@ -344,7 +337,7 @@ mrb_miniz_deflate(mrb_state *mrb, mrb_value klass)
   else
     value = mrb_fixnum_value(iRet);
 
-  mrb_free(mrb, pDest);
+  free(pDest);
   return value;
 }
 
